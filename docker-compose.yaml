@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  server:
+      build:
+            context: ./
+            dockerfile: ./Dockerfile
+      container_name: hyperf-php
+      restart: always
+      depends_on:
+        - redis
+  redis:
+    image: redis:6.0.6
+    container_name: hyperf-redis # 容器名
+    restart: always
+    ports:
+      - '6379:6379'
