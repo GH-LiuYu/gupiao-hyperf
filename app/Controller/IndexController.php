@@ -111,7 +111,7 @@ class IndexController extends AbstractController
         if(($endTime<=41400&&$endTime>=34200)||($endTime>=46800&&$endTime<=54000)){
             $chan = new \Swoole\Coroutine\Channel();
             $result = [];
-            $codes =CodeList::get()->toArray();
+            $codes =Code::get()->toArray();
             $pageSize =10;
             $pageNum = ceil(count($codes)/$pageSize);
             $ip = \Swoole\Coroutine\System::gethostbyname("quotes.money.163.com", AF_INET, 0.5);
@@ -146,7 +146,6 @@ class IndexController extends AbstractController
         }
         return json_encode($data);
 	}
-
 
 //  此方法为测试方法 可以测试全天的数据
     public function getCodeList1(){
@@ -569,7 +568,6 @@ class IndexController extends AbstractController
     }
     public function getResult($list,$codes){
         $data =[];
-        $i =1;
         foreach ($codes as $key => $value) {
             if(isset($list[$value['name']])){
                 $array['content'] =[];
@@ -587,6 +585,10 @@ class IndexController extends AbstractController
                         $result = $this->sec60s($startPrice,$minPrice,$lastPrice);
                     }else{
                         $result = $this->sec5Mins($startPrice,$minPrice,$lastPrice);
+                    }
+                    $a =array_count_values(array_column($arr['zhubi_list'],'TRADE_TYPE_STR'));
+                    if($a['买盘']>$a['卖盘']){
+                        $result = true;
                     }
                     if(substr( $value['code'], 0, 1 )=='6'){
                         $code = '0'.$value['code'];
@@ -624,6 +626,7 @@ class IndexController extends AbstractController
                             'href'=>'quotes.money.163.com/'.$code.'.html',
                             'detail'=>'quotes.money.163.com/trade/cjmx_'.$value['code'].'.html'
                         ];
+                        DB::table('code')->where('code', $value['code'])->update(['time'=>date('Y-m-d H:i:s',time())]);
                     }
                 }
             }
@@ -653,15 +656,6 @@ class IndexController extends AbstractController
     public function buyAndSell(){
         //如果买大于卖 返回true;否则返回false
         return true;
-    }
-
-    //统计买卖成交量比
-    public function tradeNumber(){
-
-    }
-
-    public function sec10mins(){
-
     }
 
     //设置开盘，最高，最低价
